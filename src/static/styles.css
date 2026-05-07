@@ -538,6 +538,7 @@ footer {
 }
 
 .category-filters,
+.group-filters,
 .day-filters,
 .time-filters {
   display: flex;
@@ -546,6 +547,7 @@ footer {
 }
 
 .category-filter,
+.group-filter,
 .day-filter,
 .time-filter {
   background-color: var(--background);
@@ -559,6 +561,7 @@ footer {
 }
 
 .category-filter.active,
+.group-filter.active,
 .day-filter.active,
 .time-filter.active {
   background-color: var(--primary);
@@ -567,10 +570,30 @@ footer {
 }
 
 .category-filter:hover,
+.group-filter:hover,
 .day-filter:hover,
 .time-filter:hover {
   background-color: var(--primary-light);
   color: white;
+}
+
+#activities-list.grouped-view {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.activity-group-title {
+  margin-bottom: 10px;
+  color: var(--primary);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+}
+
+.activity-group-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
 }
 
 .time-filters {

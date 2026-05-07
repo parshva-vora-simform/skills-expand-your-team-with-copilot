@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const searchInput = document.getElementById("activity-search");
   const searchButton = document.getElementById("search-button");
   const categoryFilters = document.querySelectorAll(".category-filter");
+  const groupFilters = document.querySelectorAll(".group-filter");
   const dayFilters = document.querySelectorAll(".day-filter");
   const timeFilters = document.querySelectorAll(".time-filter");
 
@@ -37,6 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // State for activities and filters
   let allActivities = {};
   let currentFilter = "all";
+  let currentGroupBy = "none";
   let searchQuery = "";
   let currentDay = "";
   let currentTimeRange = "";
@@ -413,9 +415,10 @@ document.addEventListener("DOMContentLoaded", () => {
   function displayFilteredActivities() {
     // Clear the activities list
     activitiesList.innerHTML = "";
+    activitiesList.classList.remove("grouped-view");
 
     // Apply client-side filtering - this handles category filter and search, plus weekend filter
-    let filteredActivities = {};
+    let filteredActivities = [];
 
     Object.entries(allActivities).forEach(([name, details]) => {
       const activityType = getActivityType(name, details.description);
@@ -452,11 +455,11 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // Activity passed all filters, add to filtered list
-      filteredActivities[name] = details;
+      filteredActivities.push({ name, details, activityType });
     });
 
     // Check if there are any results
-    if (Object.keys(filteredActivities).length === 0) {
+    if (filteredActivities.length === 0) {
       activitiesList.innerHTML = `
         <div class="no-results">
           <h4>No activities found</h4>
@@ -466,14 +469,56 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    if (currentGroupBy === "category") {
+      activitiesList.classList.add("grouped-view");
+      const groupedActivities = {};
+
+      filteredActivities.forEach((activity) => {
+        if (!groupedActivities[activity.activityType]) {
+          groupedActivities[activity.activityType] = [];
+        }
+        groupedActivities[activity.activityType].push(activity);
+      });
+
+      const orderedTypes = [
+        ...Object.keys(activityTypes),
+        ...Object.keys(groupedActivities).filter((type) => !activityTypes[type]),
+      ];
+
+      orderedTypes.forEach((type) => {
+        if (!groupedActivities[type]) {
+          return;
+        }
+
+        const groupSection = document.createElement("div");
+        groupSection.className = "activity-group";
+
+        const groupTitle = document.createElement("h4");
+        groupTitle.className = "activity-group-title";
+        groupTitle.textContent = activityTypes[type]?.label || type;
+
+        const groupList = document.createElement("div");
+        groupList.className = "activity-group-list";
+
+        groupedActivities[type].forEach(({ name, details }) => {
+          renderActivityCard(name, details, groupList);
+        });
+
+        groupSection.appendChild(groupTitle);
+        groupSection.appendChild(groupList);
+        activitiesList.appendChild(groupSection);
+      });
+      return;
+    }
+
     // Display filtered activities
-    Object.entries(filteredActivities).forEach(([name, details]) => {
+    filteredActivities.forEach(({ name, details }) => {
       renderActivityCard(name, details);
     });
   }
 
   // Function to render a single activity card
-  function renderActivityCard(name, details) {
+  function renderActivityCard(name, details, container = activitiesList) {
     const activityCard = document.createElement("div");
     activityCard.className = "activity-card";
 
@@ -587,7 +632,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    activitiesList.appendChild(activityCard);
+    container.appendChild(activityCard);
   }
 
   // Event listeners for search and filter
@@ -611,6 +656,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Update current filter and display filtered activities
       currentFilter = button.dataset.category;
+      displayFilteredActivities();
+    });
+  });
+
+  groupFilters.forEach((button) => {
+    button.addEventListener("click", () => {
+      groupFilters.forEach((btn) => btn.classList.remove("active"));
+      button.classList.add("active");
+
+      currentGroupBy = button.dataset.group;
       displayFilteredActivities();
     });
   });
