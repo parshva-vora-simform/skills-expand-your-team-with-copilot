@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "type": "command",
+        "bash": "mkdir -p logs && cat >> logs/session.log && echo >> logs/session.log",
+        "powershell": "New-Item -ItemType Directory -Force -Path logs | Out-Null; $input = [Console]::In.ReadToEnd(); Add-Content -Path logs/session.log -Value $input",
+        "cwd": ".",
+        "timeoutSec": 10
+      }
+    ],
+    "preToolUse": [
+      {
+        "type": "command",
+        "bash": "mkdir -p logs && cat >> logs/tool-executions.jsonl && echo >> logs/tool-executions.jsonl",
+        "powershell": "New-Item -ItemType Directory -Force -Path logs | Out-Null; $input = [Console]::In.ReadToEnd(); Add-Content -Path logs/tool-executions.jsonl -Value $input",
+        "cwd": ".",
+        "timeoutSec": 10
+      }
+    ]
+  }
+}
